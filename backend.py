@@ -1,10 +1,5 @@
 import requests
 
-
-def manualQuery():
-    q = input('What food are you searching for? ')
-    query(q)
-
 def query(q):
     api_key = ''
     _url = 'https://api.nal.usda.gov/ndb/search'
@@ -26,9 +21,11 @@ def query(q):
         _params = {'api_key':api_key, 'ndbno':ndbno}
 
         r = requests.get(url = _url, params = _params)
-        data = r.json().get('foods')[0].get('food').get('ing').get('desc')
+        #data = r.json().get('foods')[0].get('food').get('ing').get('desc')
+        data = r.json().get('foods')[0].get('food')
 
         print(data)
+        return data
 
         """
         if allergen in str(data).lower():
@@ -61,18 +58,17 @@ def upceToA(upce):
 def checkCode(num):
     if(len(num) == 6):
         num = upceToA(num)
-    query(num)
+    return query(num)
 
 def main():
     choice = input('\n[C]ode or [W]ord? ').lower()
     if choice == 'c':
-        num = input('\nEnter code: ')
-        checkCode(num)
+        q = input('\nEnter code: ')
     elif choice == 'w':
         q = input('\nEnter search term: ')
-        manualQuery(q)
     else:
         print('Invalid choice')
+    return query(q)
 
 main()
     
