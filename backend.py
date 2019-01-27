@@ -21,12 +21,20 @@ def getIngredients(id):
     print(str(result) + '\n')
     return result
 
-def findCommon(list):
+def findCommon(q):
     data = []
-    for id in list:
+    for id in q:
         a = getIngredients(id)
         data.append(a)
-    print(set.intersection(*map(set, data)))
+    common = list(set.intersection(*map(set, data)))
+    print(common)
+
+    result = []
+    for allergen in allergens:
+        for food in common:
+            if allergen in food:
+                result.append(allergen)
+    print(result)
 
 def getInfo(ndbno):
     _url = 'https://api.nal.usda.gov/ndb/V2/reports'
