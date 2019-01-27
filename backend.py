@@ -1,32 +1,78 @@
 import requests
 
-#upc = '01275900'
 
-query = input('What food are you searching for? ')
-allergen = input('What allergen are you looking for? ')
+def manualQuery():
+    q = input('What food are you searching for? ')
+    query(q)
 
-api_key = ''
-_url = 'https://api.nal.usda.gov/ndb/search'
-num_requests = '1'
-_params = {'api_key':api_key, 'q':query, 'max':num_requests}
+def query(q):
+    api_key = ''
+    _url = 'https://api.nal.usda.gov/ndb/search'
+    num_requests = '1'
+    _params = {'api_key':api_key, 'q':q, 'max':num_requests}
 
-r = requests.get(url = _url, params = _params)
-data = r.json().get('list').get('item')
-ndbno = ''
+    r = requests.get(url = _url, params = _params)
+    data = r.json()
 
-for entry in data:
-    ndbno = entry.get('ndbno')
-    print('\n' + str(entry.get('name')) + '\n')
+    if (data == None):
+        print('I did not find any foods matching that name')
+    else:
+        data = r.json().get('list').get('item')
 
-_url = 'https://api.nal.usda.gov/ndb/V2/reports'
-_params = {'api_key':api_key, 'ndbno':ndbno}
+        ndbno = data[0].get('ndbno')
+        print('\n' + str(data[0].get('name')) + '\n')
 
-r = requests.get(url = _url, params = _params)
-data = r.json().get('foods')[0].get('food').get('ing').get('desc')
+        _url = 'https://api.nal.usda.gov/ndb/V2/reports'
+        _params = {'api_key':api_key, 'ndbno':ndbno}
 
-print(data)
+        r = requests.get(url = _url, params = _params)
+        data = r.json().get('foods')[0].get('food').get('ing').get('desc')
 
-if allergen in str(data).lower():
-    print("\nThis food contains " + allergen)
-else:
-    print("\nThis food does not contain " + allergen)
+        print(data)
+
+        """
+        if allergen in str(data).lower():
+            print("\nThis food contains " + allergen)
+        else:
+            print("\nThis food does not contain " + allergen)
+        """
+
+def upceToA(upce):
+    orig = upce
+    check_digit = upce[-1]
+    start_digit = upce[0]
+    upce = upce[1:-1]
+
+    upca = ""
+    if int(upce[-1]) in [0,1,2]:
+        upca = upce[0:2] + upce[-1] + "0000" + upce[2:5]
+    elif int(upce[-1]) == 3:
+        upca = upce[0:3] + "00000" + upce[3:5]
+    elif int(upce[-1]) == 4:
+        upca = upce[0:4] + "00000" + upce[4]
+    elif int(upce[-1]) in [5,6,7,8,9]:
+        upca = upce[0:5] + "0000" + upce[-1]
+    else:
+        raise Exception("Invalid upce")
+
+    upca = start_digit + upca + check_digit
+    return upca
+
+def checkCode(num):
+    if(len(num) == 6):
+        num = upceToA(num)
+    query(num)
+
+def main():
+    choice = input('\n[C]ode or [W]ord? ').lower()
+    if choice == 'c':
+        num = input('\nEnter code: ')
+        checkCode(num)
+    elif choice == 'w':
+        q = input('\nEnter search term: ')
+        manualQuery(q)
+    else:
+        print('Invalid choice')
+
+main()
+    
