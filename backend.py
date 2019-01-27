@@ -1,15 +1,14 @@
 import requests, json, re
 
-allergens = ['wheat', 'egg', 'soy']
-api_key = '5XK9ASThPs6qzFRXpOTuiIGjcTRBR2NRrQXiKfOk'
+allergens = ['wheat', 'egg', 'soy', 'blueberry']
+api_key = ''
 
-def findAllergens(ingredients):
+def findAllergens(ing):
     result = []
-    ing = str(ingredients)
-    for a in allergens:
-        if a in ing:
-            print('\nFound allergen ' + str(a) + ' in food\n')
-            result.append(a)
+    for allergen in allergens:
+        for food in ing:
+            if allergen in food and allergen not in result:
+                result.append(allergen)
     return result
 
 def getIngredients(id):
@@ -18,8 +17,10 @@ def getIngredients(id):
     result = re.split(', | \(|\)| \[|\]', ingredients)
     result = [x for x in result if x is not None]
     result = [x for x in result if len(x) > 1]
-    print(str(result) + '\n')
     return result
+
+
+# API Request
 
 def findCommon(q):
     data = []
@@ -27,20 +28,34 @@ def findCommon(q):
         a = getIngredients(id)
         data.append(a)
     common = list(set.intersection(*map(set, data)))
-    print(common)
 
-    result = []
-    for allergen in allergens:
-        for food in common:
-            if allergen in food:
-                result.append(allergen)
-    print(result)
+    result = findAllergens(common)
+
+    if not len(result):
+        data = {
+            'food': {
+                'list': ['These foods have no allergens in common']
+            }
+        }
+    else:
+        data = {
+            'food': {
+                'list': result
+            }
+        }
+    data = json.dumps(data)
+    print(data)
+    return data
+
 
 def getInfo(ndbno):
     _url = 'https://api.nal.usda.gov/ndb/V2/reports'
     _params = {'api_key':api_key, 'ndbno':ndbno}
     r = requests.get(url = _url, params = _params)
     return r.json()
+
+
+# API Request
 
 def search(q):
     _url = 'https://api.nal.usda.gov/ndb/search'
@@ -49,16 +64,21 @@ def search(q):
 
     data = requests.get(url = _url, params = _params).json()
 
-    if (data == None):
-        print('I did not find any foods matching that name')
+    if not data:
+        data = {
+            'food': {
+                'id': '-1',
+                'name': 'Food not found'
+            }
+        }
     else:
         data = data.get('list').get('item')
         ndbno = data[0].get('ndbno')
         name = data[0].get('name')
 
         data = getInfo(ndbno)
-        ingredients = data.get('foods')[0].get('food').get('ing').get('desc')
-        allergens = findAllergens(ingredients)
+        ing = getIngredients(ndbno)
+        allergens = findAllergens(ing)
         allergic = 'n'
         if len(allergens):
             allergic = 'y'
@@ -77,8 +97,11 @@ def search(q):
         print(data)
         return data
 
+
+
 def upceToA(upce):
     orig = upce
+    
     check_digit = upce[-1]
     start_digit = upce[0]
     upce = upce[1:-1]
@@ -104,6 +127,7 @@ def checkCode(num):
     return query(num)
 
 def main():
+    '''
     choice = input('\n[C]ode or [W]ord? ').lower()
     if choice == 'c':
         q = input('\nEnter code: ')
@@ -112,9 +136,15 @@ def main():
     else:
         q = ''
         print('Invalid choice')
+    '''
 
+    # add check for numbers/UPCs
+
+    search('45293442')
+    print()
+    search('blueberry waffles')
+    print()
     findCommon(['45293442','45253999','45128355'])
-    #return search(q)
 
 #main()
     
