@@ -1,7 +1,7 @@
 import requests, json, re
 
 allergens = ['wheat', 'egg', 'soy']
-api_key = ''
+api_key = '5XK9ASThPs6qzFRXpOTuiIGjcTRBR2NRrQXiKfOk'
 
 def findAllergens(ingredients):
     result = []
@@ -64,10 +64,10 @@ def search(q):
             allergic = 'y'
 
         data = {
-            "food": {
+            "data": {
                 "name": str(name),
                 "id": str(ndbno),
-                "ingredients": ingredients,
+                "ingredients": ingredients.split(", "),
                 "allergic": str(allergic),
                 "allergens": allergens
             }
@@ -116,5 +116,5 @@ def main():
     findCommon(['45293442','45253999','45128355'])
     #return search(q)
 
-main()
+#main()
     
